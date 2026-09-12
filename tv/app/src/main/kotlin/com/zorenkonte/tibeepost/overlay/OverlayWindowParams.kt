@@ -42,6 +42,14 @@ class OverlayWindowParams(private val context: Context) {
         }
     }
 
+    fun dim(): WindowManager.LayoutParams = WindowManager.LayoutParams(
+        WindowManager.LayoutParams.MATCH_PARENT,
+        WindowManager.LayoutParams.MATCH_PARENT,
+        overlayType,
+        passiveFlags,
+        PixelFormat.TRANSLUCENT,
+    )
+
     private fun gravityFor(position: Position) = when (position) {
         Position.CENTER -> Gravity.CENTER
         Position.TOP_LEFT -> Gravity.TOP or Gravity.START

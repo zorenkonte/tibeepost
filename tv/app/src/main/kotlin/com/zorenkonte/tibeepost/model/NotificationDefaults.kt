@@ -7,4 +7,5 @@ data class NotificationDefaults(
     val background: Int = 0xFFFFFFFF.toInt(),
     val textColor: Int = 0xFF111111.toInt(),
     val accent: Int? = null,
+    val dim: Float = 0f,
 )

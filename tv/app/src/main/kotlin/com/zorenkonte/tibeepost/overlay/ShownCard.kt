@@ -5,6 +5,7 @@ import com.zorenkonte.tibeepost.model.Notification
 
 class ShownCard(
     var notification: Notification,
+    val dim: DimView,
     val card: NotificationCardView,
     var cardParams: WindowManager.LayoutParams,
     var generation: Int,

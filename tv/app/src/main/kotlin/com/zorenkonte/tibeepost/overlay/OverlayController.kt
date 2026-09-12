@@ -33,6 +33,7 @@ class OverlayController(
         current = null
         shown.dismissal?.let(mainThread::removeCallbacks)
         removeQuietly(shown.card)
+        removeQuietly(shown.dim)
         shown.card.releaseBitmaps()
     }
 
@@ -45,9 +46,15 @@ class OverlayController(
         val card = NotificationCardView(windowContext)
         card.bind(notification, maxImageHeight(screen.height()))
         val cardParams = params.card(notification, screen)
-        if (!addQuietly(card, cardParams)) return false
+        val dim = DimView(windowContext)
+        dim.setOpacity(notification.dim)
+        if (!addQuietly(dim, params.dim())) return false
+        if (!addQuietly(card, cardParams)) {
+            removeQuietly(dim)
+            return false
+        }
 
-        val shown = ShownCard(notification, card, cardParams, ++generation)
+        val shown = ShownCard(notification, dim, card, cardParams, ++generation)
         current = shown
         fetchMedia(shown, screen.width(), screen.height())
         scheduleDismissal(shown)
@@ -60,6 +67,7 @@ class OverlayController(
         shown.generation = ++generation
         shown.card.bind(notification, maxImageHeight(screen.height()))
         shown.cardParams = params.card(notification, screen)
+        shown.dim.setOpacity(notification.dim)
         try {
             windowManager.updateViewLayout(shown.card, shown.cardParams)
         } catch (_: RuntimeException) {
