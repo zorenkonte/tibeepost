@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">TibeePost</string>
+    <string name="channel_server">Notification server</string>
+    <string name="status_starting">Starting server</string>
 </resources>
