@@ -5,6 +5,7 @@ import { ComposeForm } from './components/ComposeForm'
 import { CurlExport } from './components/CurlExport'
 import { DevicesPanel } from './components/DevicesPanel'
 import { HistoryList } from './components/HistoryList'
+import { InsecureContentNotice } from './components/InsecureContentNotice'
 import { PresetsBar } from './components/PresetsBar'
 import { SendPanel } from './components/SendPanel'
 import { useDevices } from './hooks/useDevices'
@@ -34,6 +35,7 @@ export default function App() {
         <h1 className="text-cladd-md font-semibold">TibeePost</h1>
         <span className="text-cladd-xs text-cladd-fg-soft">Compose and send overlay notifications to your TV</span>
       </header>
+      <InsecureContentNotice />
       <div className="grid flex-1 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <Surface className="p-4">
           <Tabs value={tab} onValueChange={setTab}>

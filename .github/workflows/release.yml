@@ -1,0 +1,77 @@
+name: Release APK
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version name for a manual pre-release build
+        required: false
+        default: 0.0.0-manual
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Resolve version
+        id: version
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            echo "name=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+            echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+            echo "tag=manual-${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Test and build
+        working-directory: tv
+        run: >
+          ./gradlew testDebugUnitTest assembleDebug
+          -PtibeeVersionName=${{ steps.version.outputs.name }}
+          -PtibeeVersionCode=${{ github.run_number }}
+          --no-daemon
+
+      - name: Name the APK
+        run: cp tv/app/build/outputs/apk/debug/app-debug.apk "tibeepost-${{ steps.version.outputs.name }}.apk"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tibeepost-${{ steps.version.outputs.name }}
+          path: tibeepost-${{ steps.version.outputs.name }}.apk
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: TibeePost ${{ steps.version.outputs.name }}
+          prerelease: ${{ steps.version.outputs.prerelease }}
+          generate_release_notes: true
+          files: tibeepost-${{ steps.version.outputs.name }}.apk
+          body: |
+            Android TV app, versionName `${{ steps.version.outputs.name }}`, versionCode `${{ github.run_number }}`.
+
+            Install over the network:
+
+            ```sh
+            adb connect TV_IP:5555
+            adb install -r tibeepost-${{ steps.version.outputs.name }}.apk
+            adb shell appops set com.zorenkonte.tibeepost SYSTEM_ALERT_WINDOW allow
+            ```
+
+            Open TibeePost once on the TV to start the server, then `curl http://TV_IP:8090/health`.

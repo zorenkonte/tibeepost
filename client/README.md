@@ -21,7 +21,19 @@ npm run preview
 ```
 
 `dist/` is static and can be hosted from anything on the LAN, including the TV owner's NAS
-or a Raspberry Pi. The build must still be served over `http://` to reach the TV.
+or a Raspberry Pi. Serve it over `http://` to reach the TV without extra browser settings.
+
+Set `VITE_BASE` when the app lives under a sub-path, for example `VITE_BASE=/tibeepost/ npm run build`
+for GitHub Pages. It defaults to `/`.
+
+## Hosted on GitHub Pages
+
+Every push to `main` that touches `client/` deploys the app to
+`https://zorenkonte.github.io/tibeepost/` through `.github/workflows/pages.yml`. Pages is HTTPS-only,
+and browsers block an HTTPS page from calling the TV's plain-HTTP server, so the hosted app shows a
+banner when it detects HTTPS. In Chrome and Edge, click the padlock, open Site settings, set Insecure
+content to Allow, and reload; Firefox has no per-site override, so use `npm run dev` there. Details
+are in the root README under "Hosted client".
 
 ## Using it
 
@@ -70,12 +82,14 @@ src/
   lib/devices.ts          Device type and host normalization
   lib/presets.ts          Built-in presets
   lib/storage.ts          localStorage helpers
+  lib/pageProtocol.ts     Detects HTTPS serving for the mixed-content notice
   hooks/useDevices.ts     Device list, selection, reachability polling
   hooks/useSender.ts      Parallel send/clear with per-device outcomes and toasts
   hooks/usePresets.ts     Built-in plus saved presets
   hooks/useHistory.ts     Session send history
   components/             ComposeForm, CardPreview, SendPanel, DevicesPanel,
-                          PresetsBar, HistoryList, CurlExport, Field
+                          PresetsBar, HistoryList, CurlExport, Field,
+                          InsecureContentNotice
 ```
 
 ## Checks
