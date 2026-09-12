@@ -330,6 +330,23 @@ with a packet capture.
 
 ## TV settings screen
 
+### First run
+
+The first launch after installing opens a three-step setup instead of the settings screen:
+
+1. **Welcome** explains what the app does and shows the address this TV listens on.
+2. **Permission** walks through the overlay permission. When the TV offers a system page for it, a
+   "Try system settings" button opens it; otherwise the adb command is shown on screen. The step
+   re-checks every few seconds and moves on by itself once the permission is granted. It can be
+   skipped, but every following screen then states that TibeePost is unusable until the permission
+   is granted, and the settings screen keeps saying so on every launch.
+3. **Test** sends a real notification through the local server so you can see a card appear before
+   any remote client is involved.
+
+The setup runs once. A "Run setup again" row at the bottom of the settings screen brings it back.
+
+### Settings
+
 Open TibeePost from the launcher. Everything is reachable with the D-pad; there are no text
 fields.
 
@@ -342,6 +359,7 @@ fields.
 - **Default sound** None or chime, with a Preview button.
 - **Default card width, duration, dim, position, background, text color, accent** Press left
   and right on a row to step the value. These become the defaults for fields a `POST` omits.
+- **Run setup again** Replays the first-run flow.
 
 ## Web client
 
