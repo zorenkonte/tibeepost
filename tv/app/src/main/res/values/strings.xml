@@ -64,4 +64,6 @@
     <string name="setup_done_body">The settings screen shows this address, lets you require a bearer token, and sets the default look, sound and duration for cards that do not specify their own.</string>
     <string name="setup_finish">Finish</string>
     <string name="setup_finish_anyway">Finish anyway</string>
+    <string name="row_rerun_setup">Run setup again</string>
+    <string name="row_rerun_setup_body">Walk through the welcome, permission and test steps once more.</string>
 </resources>

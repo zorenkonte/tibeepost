@@ -67,6 +67,10 @@ class SettingsState(context: Context) {
         settings.onboardingDone = true
     }
 
+    fun resetOnboarding() {
+        settings.onboardingDone = false
+    }
+
     fun generateToken() {
         settings.token = TokenGenerator.generate()
     }

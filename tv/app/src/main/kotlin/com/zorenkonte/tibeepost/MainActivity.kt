@@ -26,7 +26,7 @@ class MainActivity : ComponentActivity() {
                 if (showSetup) {
                     OnboardingScreen(state, onFinished = { showSetup = false })
                 } else {
-                    SettingsScreen(state)
+                    SettingsScreen(state, onRerunSetup = { showSetup = true })
                 }
             }
         }
