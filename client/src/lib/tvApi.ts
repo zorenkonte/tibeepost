@@ -1,4 +1,5 @@
 import { baseUrl, type Device } from './devices'
+import type { WirePayload } from './payload'
 
 export interface HealthInfo {
   version: string
@@ -36,6 +37,46 @@ export async function checkHealth(device: Device, timeoutMs = 2500): Promise<Hea
     if (!response.ok) throw new TvApiError(await readError(response), response.status)
     const body = (await response.json()) as { version?: string }
     return { version: body.version ?? 'unknown' }
+  } catch (error) {
+    if (error instanceof TvApiError) throw error
+    throw new TvApiError(describeNetworkError(error), null)
+  }
+}
+
+export interface NotifyResult {
+  id: string
+  result: string
+}
+
+function authHeaders(device: Device): HeadersInit {
+  return device.token ? { Authorization: `Bearer ${device.token}` } : {}
+}
+
+export async function sendNotification(device: Device, payload: WirePayload, timeoutMs = 6000): Promise<NotifyResult> {
+  try {
+    const response = await fetch(`${baseUrl(device)}/notify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders(device) },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(timeoutMs),
+    })
+    if (!response.ok) throw new TvApiError(await readError(response), response.status)
+    return (await response.json()) as NotifyResult
+  } catch (error) {
+    if (error instanceof TvApiError) throw error
+    throw new TvApiError(describeNetworkError(error), null)
+  }
+}
+
+export async function clearNotification(device: Device, id: string, timeoutMs = 6000): Promise<NotifyResult> {
+  try {
+    const response = await fetch(`${baseUrl(device)}/notify/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+      headers: authHeaders(device),
+      signal: AbortSignal.timeout(timeoutMs),
+    })
+    if (!response.ok) throw new TvApiError(await readError(response), response.status)
+    return (await response.json()) as NotifyResult
   } catch (error) {
     if (error instanceof TvApiError) throw error
     throw new TvApiError(describeNetworkError(error), null)
