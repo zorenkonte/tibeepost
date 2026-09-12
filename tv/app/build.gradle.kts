@@ -14,8 +14,8 @@ android {
         applicationId = "com.zorenkonte.tibeepost"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = (findProperty("tibeeVersionCode") as String?)?.toIntOrNull() ?: 1
+        versionName = (findProperty("tibeeVersionName") as String?) ?: "0.1.0"
     }
 
     signingConfigs {
