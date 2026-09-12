@@ -15,6 +15,10 @@ class Settings(context: Context) {
         get() = prefs.getString(SettingsKeys.TOKEN, "") ?: ""
         set(value) = prefs.edit().putString(SettingsKeys.TOKEN, value).apply()
 
+    var onboardingDone: Boolean
+        get() = prefs.getBoolean(SettingsKeys.ONBOARDING_DONE, false)
+        set(value) = prefs.edit().putBoolean(SettingsKeys.ONBOARDING_DONE, value).apply()
+
     var autostart: Boolean
         get() = prefs.getBoolean(SettingsKeys.AUTOSTART, true)
         set(value) = prefs.edit().putBoolean(SettingsKeys.AUTOSTART, value).apply()
