@@ -21,6 +21,7 @@ Everything stays on your network. There is no cloud relay and no push service.
 
 - [Requirements](#requirements)
 - [Install the TV app](#install-the-tv-app)
+- [Releases](#releases)
 - [Grant the overlay permission](#grant-the-overlay-permission)
 - [Find the TV's IP address](#find-the-tvs-ip-address)
 - [curl quickstart](#curl-quickstart)
@@ -28,6 +29,7 @@ Everything stays on your network. There is no cloud relay and no push service.
 - [Notification behavior](#notification-behavior)
 - [TV settings screen](#tv-settings-screen)
 - [Web client](#web-client)
+- [Hosted client](#hosted-client)
 - [Troubleshooting](#troubleshooting)
 - [Development](#development)
 
@@ -69,6 +71,39 @@ adb install -r tv/app/build/outputs/apk/debug/app-debug.apk
 Then open **TibeePost** from the TV launcher once. Opening it starts the foreground service,
 which keeps the HTTP server alive, and shows the settings screen with the TV's address in
 large type.
+
+## Releases
+
+Every tag that starts with `v` publishes a GitHub Release with the APK attached, built by
+`.github/workflows/release.yml`. Grab the newest APK from the
+[Releases page](https://github.com/zorenkonte/tibeepost/releases) instead of building locally:
+
+```sh
+adb connect TV_IP:5555
+adb install -r tibeepost-0.2.0.apk
+```
+
+To cut a release:
+
+```sh
+git tag v0.2.0
+git push origin v0.2.0
+```
+
+The workflow runs the JVM tests, builds the APK with `versionName` taken from the tag (`v0.2.0`
+becomes `0.2.0`) and `versionCode` set to the workflow run number, which only ever goes up, so
+every release installs over the previous one. Running the workflow by hand from the Actions tab
+produces a pre-release named `manual-<run>` for trying a branch.
+
+APKs are signed with `tv/debug.keystore`, a debug key committed to the repo on purpose. Android only
+allows `adb install -r` to upgrade an app when the new APK is signed with the same key as the
+installed one; a fresh debug key per CI run would force an uninstall before every update. The key
+carries no secrets and is unsuitable for Play Store publishing, which this app does not do. Local
+`./gradlew assembleDebug` builds use the same key, so locally built and released APKs upgrade each
+other freely.
+
+Pushes to `main` and pull requests also run `.github/workflows/ci.yml`, which executes the TV tests,
+Android lint and the client build, so a tag never publishes broken code.
 
 ## Grant the overlay permission
 
@@ -321,6 +356,32 @@ npm install
 npm run dev
 ```
 
+## Hosted client
+
+`.github/workflows/pages.yml` deploys the client to GitHub Pages on every push to `main` that touches
+`client/`, at:
+
+```
+https://zorenkonte.github.io/tibeepost/
+```
+
+One-time setup in the repository: **Settings > Pages > Build and deployment > Source** must be set to
+**GitHub Actions**. Until then the deploy job fails with a "Pages not enabled" error. The workflow can
+also be started by hand from the Actions tab.
+
+**The hosted page is HTTPS and the TV is HTTP.** Browsers block a secure page from calling an
+insecure address, so on the Pages URL every send fails as "Blocked" until you allow it once for that
+site. The client shows a banner explaining this whenever it is served over HTTPS.
+
+- Chrome, Edge, Brave: click the padlock left of the address, open **Site settings**, set
+  **Insecure content** to **Allow**, then reload the page. This is a per-site setting; the rest of
+  your browsing is unaffected.
+- Firefox has no per-site switch. Run the client locally with `npm run dev` instead, or host the
+  `dist/` folder on a plain `http://` server on your LAN.
+
+Running locally over `http://localhost` has none of this friction, which is why the README leads
+with it.
+
 ## Troubleshooting
 
 **`POST /notify` returns 503 or the TV settings screen says the overlay permission is
@@ -337,15 +398,26 @@ TibeePost retries with backoff; free the port or reboot the TV.
 **Images or sound URLs never load.** Use `http://` or `https://` URLs reachable from the TV
 itself. Cleartext HTTP is allowed. Images over 5 MB or slower than 5 s are skipped.
 
-**The browser client says "Unreachable" while curl works.** The TV is on a different network
-or VLAN from the laptop, or the browser blocked a mixed-content request. Serve the client
-over `http://`, not `https://`, when the TV is plain HTTP.
+**The browser client says "Unreachable" or "Blocked" while curl works.** Either the TV is on a
+different network or VLAN from the laptop, or the page is served over `https://` and the browser
+blocked the plain-HTTP request to the TV. See [Hosted client](#hosted-client) for the per-site
+browser setting, or run the client over `http://`.
 
 **Cards appear but the TV's own dialogs hide them.** System dialogs and some apps are allowed
 to hide overlays. That is Android behavior, not a TibeePost setting.
 
 **The APK refuses to install.** The TV runs Android below 8.0. Check
 `adb shell getprop ro.build.version.sdk`; the app needs 26 or higher.
+
+## Branches
+
+The release line is `main`: the CI, Pages and release workflows all watch it. If the repository still
+shows `claude/tibeepost-build-5p7u32` as its only branch, create `main` from it and make it the
+default under **Settings > General > Default branch**:
+
+```sh
+git push origin claude/tibeepost-build-5p7u32:main
+```
 
 ## Development
 
@@ -357,6 +429,13 @@ validation and the queue:
 cd tv
 ./gradlew testDebugUnitTest
 ./gradlew lint
+```
+
+Build a specific version locally the same way the release workflow does:
+
+```sh
+cd tv
+./gradlew assembleDebug -PtibeeVersionName=0.2.0 -PtibeeVersionCode=42
 ```
 
 Regenerate the chime after editing `tv/tools/gen_chime.py`:
