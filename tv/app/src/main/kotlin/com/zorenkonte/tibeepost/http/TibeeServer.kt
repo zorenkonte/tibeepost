@@ -27,6 +27,7 @@ class TibeeServer(port: Int, private val router: Router) : NanoHTTPD(port) {
         } else {
             newFixedLengthResponse(status, MIME_JSON, result.body)
         }
+        CorsHeaders.all.forEach { (name, value) -> response.addHeader(name, value) }
         result.headers.forEach { (name, value) -> response.addHeader(name, value) }
         return response
     }

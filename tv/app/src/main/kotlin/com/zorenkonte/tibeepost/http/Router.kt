@@ -23,6 +23,7 @@ class Router(
 
     private fun route(request: HttpRequest): HttpResult {
         val path = request.path.trimEnd('/').ifEmpty { "/" }
+        if (request.method == "OPTIONS") return CorsHeaders.preflight()
         return when {
             path == "/health" -> requireMethod(request, "GET") { health() }
             path == "/info" -> requireMethod(request, "GET") { info() }
