@@ -8,17 +8,20 @@ import android.os.IBinder
 import com.zorenkonte.tibeepost.R
 import com.zorenkonte.tibeepost.image.ImageFetcher
 import com.zorenkonte.tibeepost.overlay.OverlayController
+import com.zorenkonte.tibeepost.sound.SoundPlayer
 
 class ServerService : Service() {
 
     private lateinit var imageFetcher: ImageFetcher
+    private lateinit var soundPlayer: SoundPlayer
     lateinit var overlay: OverlayController
         private set
 
     override fun onCreate() {
         super.onCreate()
         imageFetcher = ImageFetcher()
-        overlay = OverlayController(this, imageFetcher)
+        soundPlayer = SoundPlayer(this)
+        overlay = OverlayController(this, imageFetcher, soundPlayer)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -28,6 +31,7 @@ class ServerService : Service() {
 
     override fun onDestroy() {
         overlay.dismissAll()
+        soundPlayer.release()
         imageFetcher.shutdown()
         super.onDestroy()
     }

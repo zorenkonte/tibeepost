@@ -8,4 +8,5 @@ data class NotificationDefaults(
     val textColor: Int = 0xFF111111.toInt(),
     val accent: Int? = null,
     val dim: Float = 0f,
+    val sound: SoundSpec = SoundSpec.Default,
 )

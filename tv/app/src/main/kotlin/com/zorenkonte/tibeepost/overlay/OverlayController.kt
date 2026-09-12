@@ -8,10 +8,12 @@ import android.view.View
 import android.view.WindowManager
 import com.zorenkonte.tibeepost.image.ImageFetcher
 import com.zorenkonte.tibeepost.model.Notification
+import com.zorenkonte.tibeepost.sound.SoundPlayer
 
 class OverlayController(
     private val context: Context,
     private val imageFetcher: ImageFetcher,
+    private val soundPlayer: SoundPlayer,
 ) {
     private val mainThread = Handler(Looper.getMainLooper())
     private val params = OverlayWindowParams(context)
@@ -58,6 +60,7 @@ class OverlayController(
         current = shown
         fetchMedia(shown, screen.width(), screen.height())
         scheduleDismissal(shown)
+        soundPlayer.play(notification)
         return true
     }
 
@@ -75,6 +78,7 @@ class OverlayController(
         }
         fetchMedia(shown, screen.width(), screen.height())
         scheduleDismissal(shown)
+        soundPlayer.play(notification)
         return true
     }
 

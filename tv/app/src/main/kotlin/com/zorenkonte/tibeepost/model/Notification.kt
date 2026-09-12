@@ -14,4 +14,6 @@ data class Notification(
     val textColor: Int,
     val accent: Int?,
     val dim: Float,
+    val sound: SoundSpec,
+    val speak: Boolean,
 )
