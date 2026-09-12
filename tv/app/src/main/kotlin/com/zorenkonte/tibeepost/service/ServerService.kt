@@ -6,12 +6,30 @@ import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import com.zorenkonte.tibeepost.R
+import com.zorenkonte.tibeepost.image.ImageFetcher
+import com.zorenkonte.tibeepost.overlay.OverlayController
 
 class ServerService : Service() {
+
+    private lateinit var imageFetcher: ImageFetcher
+    lateinit var overlay: OverlayController
+        private set
+
+    override fun onCreate() {
+        super.onCreate()
+        imageFetcher = ImageFetcher()
+        overlay = OverlayController(this, imageFetcher)
+    }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         promoteToForeground(getString(R.string.status_starting))
         return START_STICKY
+    }
+
+    override fun onDestroy() {
+        overlay.dismissAll()
+        imageFetcher.shutdown()
+        super.onDestroy()
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
