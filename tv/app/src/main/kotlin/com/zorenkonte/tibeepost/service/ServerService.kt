@@ -42,6 +42,7 @@ class ServerService : Service() {
             sink = MainThreadSink(overlay),
             parser = NotificationPayloadParser(),
             defaults = settings::toDefaults,
+            token = settings::token,
         )
         server = TibeeServer(ServerConfig.PORT, router)
     }

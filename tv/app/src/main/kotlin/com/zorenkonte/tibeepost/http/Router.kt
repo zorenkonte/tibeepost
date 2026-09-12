@@ -13,6 +13,7 @@ class Router(
     private val sink: NotificationSink,
     private val parser: NotificationPayloadParser,
     private val defaults: () -> NotificationDefaults,
+    private val token: () -> String,
 ) {
 
     fun handle(request: HttpRequest): HttpResult = try {
@@ -24,8 +25,9 @@ class Router(
     private fun route(request: HttpRequest): HttpResult {
         val path = request.path.trimEnd('/').ifEmpty { "/" }
         if (request.method == "OPTIONS") return CorsHeaders.preflight()
+        if (path == "/health") return requireMethod(request, "GET") { health() }
+        if (!BearerAuth.isAuthorized(request, token())) return BearerAuth.challenge()
         return when {
-            path == "/health" -> requireMethod(request, "GET") { health() }
             path == "/info" -> requireMethod(request, "GET") { info() }
             path == "/notify" -> requireMethod(request, "POST") { notify(request) }
             path.startsWith("/notify/") -> requireMethod(request, "DELETE") { clear(path.removePrefix("/notify/")) }
@@ -51,6 +53,7 @@ class Router(
             .put("screenWidth", info.screenWidth)
             .put("screenHeight", info.screenHeight)
             .put("version", info.appVersion)
+            .put("authEnabled", token().isNotEmpty())
             .put("overlayPermission", info.overlayPermission),
     )
 

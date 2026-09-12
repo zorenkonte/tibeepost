@@ -9,4 +9,5 @@ fun testRouter(
     sink: FakeSink = FakeSink(),
     info: ServerInfo = FakeServerInfo(),
     defaults: NotificationDefaults = NotificationDefaults(),
-) = Router(info, sink, NotificationPayloadParser { "generated-id" }) { defaults }
+    token: String = "",
+) = Router(info, sink, NotificationPayloadParser { "generated-id" }, { defaults }, { token })
