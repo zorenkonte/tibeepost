@@ -5,15 +5,26 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
+import android.os.Handler
+import android.os.Looper
 import com.zorenkonte.tibeepost.R
+import com.zorenkonte.tibeepost.bridge.AndroidServerInfo
+import com.zorenkonte.tibeepost.bridge.NetworkAddress
+import com.zorenkonte.tibeepost.http.Router
+import com.zorenkonte.tibeepost.http.ServerConfig
+import com.zorenkonte.tibeepost.http.TibeeServer
 import com.zorenkonte.tibeepost.image.ImageFetcher
 import com.zorenkonte.tibeepost.overlay.OverlayController
 import com.zorenkonte.tibeepost.sound.SoundPlayer
+import java.io.IOException
 
 class ServerService : Service() {
 
+    private val mainThread = Handler(Looper.getMainLooper())
     private lateinit var imageFetcher: ImageFetcher
     private lateinit var soundPlayer: SoundPlayer
+    private lateinit var server: TibeeServer
+    private var restartAttempts = 0
     lateinit var overlay: OverlayController
         private set
 
@@ -22,18 +33,36 @@ class ServerService : Service() {
         imageFetcher = ImageFetcher()
         soundPlayer = SoundPlayer(this)
         overlay = OverlayController(this, imageFetcher, soundPlayer)
+        server = TibeeServer(ServerConfig.PORT, Router(AndroidServerInfo(this)))
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         promoteToForeground(getString(R.string.status_starting))
+        startServer()
         return START_STICKY
     }
 
     override fun onDestroy() {
+        mainThread.removeCallbacksAndMessages(null)
+        server.stop()
         overlay.dismissAll()
         soundPlayer.release()
         imageFetcher.shutdown()
         super.onDestroy()
+    }
+
+    private fun startServer() {
+        if (server.isAlive) return
+        try {
+            server.start(ServerConfig.SOCKET_READ_TIMEOUT_MS, false)
+            restartAttempts = 0
+            promoteToForeground(getString(R.string.status_listening, NetworkAddress.current() ?: "?", ServerConfig.PORT))
+        } catch (_: IOException) {
+            val delay = (1_000L shl restartAttempts.coerceAtMost(5))
+            restartAttempts++
+            promoteToForeground(getString(R.string.status_port_busy, ServerConfig.PORT))
+            mainThread.postDelayed(::startServer, delay)
+        }
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
