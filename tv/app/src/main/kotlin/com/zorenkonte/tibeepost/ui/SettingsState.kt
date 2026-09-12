@@ -63,6 +63,14 @@ class SettingsState(context: Context) {
 
     fun stopObservingPreferences() = settings.stopObserving(preferenceListener)
 
+    fun completeOnboarding() {
+        settings.onboardingDone = true
+    }
+
+    fun resetOnboarding() {
+        settings.onboardingDone = false
+    }
+
     fun generateToken() {
         settings.token = TokenGenerator.generate()
     }

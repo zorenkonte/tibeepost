@@ -12,4 +12,5 @@ object SettingsKeys {
     const val ACCENT = "default_accent"
     const val POSITION = "default_position"
     const val SOUND = "default_sound"
+    const val ONBOARDING_DONE = "onboarding_done"
 }

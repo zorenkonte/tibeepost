@@ -31,7 +31,7 @@ import com.zorenkonte.tibeepost.sound.ChimePlayer
 import kotlinx.coroutines.launch
 
 @Composable
-fun SettingsScreen(state: SettingsState = rememberSettingsState()) {
+fun SettingsScreen(state: SettingsState = rememberSettingsState(), onRerunSetup: () -> Unit = {}) {
     val context = LocalContext.current
     val chime = remember { ChimePlayer(context) }
     DisposableEffect(chime) { onDispose { chime.release() } }
@@ -137,6 +137,17 @@ fun SettingsScreen(state: SettingsState = rememberSettingsState()) {
                     onDecrease = { state.stepAccent(-1) },
                     onIncrease = { state.stepAccent(1) },
                     decoration = { ColorSwatch(state.accent) },
+                )
+            }
+            item {
+                ListItem(
+                    selected = false,
+                    onClick = {
+                        state.resetOnboarding()
+                        onRerunSetup()
+                    },
+                    headlineContent = { Text(stringResource(R.string.row_rerun_setup), style = MaterialTheme.typography.titleLarge) },
+                    supportingContent = { Text(stringResource(R.string.row_rerun_setup_body), style = MaterialTheme.typography.bodyMedium) },
                 )
             }
         }
