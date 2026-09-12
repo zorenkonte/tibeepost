@@ -7,5 +7,6 @@ interface ServerInfo {
     val screenWidth: Int
     val screenHeight: Int
     val appVersion: String
+    val packageName: String
     val overlayPermission: Boolean
 }

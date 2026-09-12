@@ -2,6 +2,10 @@ package com.zorenkonte.tibeepost.settings
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.zorenkonte.tibeepost.model.HexColor
+import com.zorenkonte.tibeepost.model.NotificationDefaults
+import com.zorenkonte.tibeepost.model.Position
+import com.zorenkonte.tibeepost.model.SoundSpec
 
 class Settings(context: Context) {
     private val prefs: SharedPreferences =
@@ -46,6 +50,20 @@ class Settings(context: Context) {
     var sound: String
         get() = prefs.getString(SettingsKeys.SOUND, "default") ?: "default"
         set(value) = prefs.edit().putString(SettingsKeys.SOUND, value).apply()
+
+    fun toDefaults(): NotificationDefaults {
+        val base = NotificationDefaults()
+        return NotificationDefaults(
+            durationSeconds = durationSeconds,
+            position = Position.fromWire(position) ?: base.position,
+            widthPercent = widthPercent,
+            background = HexColor.parse(background) ?: base.background,
+            textColor = HexColor.parse(textColor) ?: base.textColor,
+            accent = HexColor.parse(accent),
+            dim = dim,
+            sound = SoundSpec.fromWire(sound) ?: base.sound,
+        )
+    }
 
     fun observe(listener: SharedPreferences.OnSharedPreferenceChangeListener) =
         prefs.registerOnSharedPreferenceChangeListener(listener)

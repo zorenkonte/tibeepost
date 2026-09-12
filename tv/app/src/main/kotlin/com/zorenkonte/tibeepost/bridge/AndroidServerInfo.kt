@@ -26,6 +26,8 @@ class AndroidServerInfo(private val context: Context) : ServerInfo {
 
     override val appVersion: String = BuildConfig.VERSION_NAME
 
+    override val packageName: String = context.packageName
+
     override val overlayPermission: Boolean
         get() = Settings.canDrawOverlays(context)
 }

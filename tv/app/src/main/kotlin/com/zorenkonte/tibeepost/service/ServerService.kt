@@ -9,12 +9,15 @@ import android.os.Handler
 import android.os.Looper
 import com.zorenkonte.tibeepost.R
 import com.zorenkonte.tibeepost.bridge.AndroidServerInfo
+import com.zorenkonte.tibeepost.bridge.MainThreadSink
 import com.zorenkonte.tibeepost.bridge.NetworkAddress
 import com.zorenkonte.tibeepost.http.Router
 import com.zorenkonte.tibeepost.http.ServerConfig
 import com.zorenkonte.tibeepost.http.TibeeServer
 import com.zorenkonte.tibeepost.image.ImageFetcher
+import com.zorenkonte.tibeepost.model.NotificationPayloadParser
 import com.zorenkonte.tibeepost.overlay.OverlayController
+import com.zorenkonte.tibeepost.settings.Settings
 import com.zorenkonte.tibeepost.sound.SoundPlayer
 import java.io.IOException
 
@@ -33,7 +36,14 @@ class ServerService : Service() {
         imageFetcher = ImageFetcher()
         soundPlayer = SoundPlayer(this)
         overlay = OverlayController(this, imageFetcher, soundPlayer)
-        server = TibeeServer(ServerConfig.PORT, Router(AndroidServerInfo(this)))
+        val settings = Settings(this)
+        val router = Router(
+            info = AndroidServerInfo(this),
+            sink = MainThreadSink(overlay),
+            parser = NotificationPayloadParser(),
+            defaults = settings::toDefaults,
+        )
+        server = TibeeServer(ServerConfig.PORT, router)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

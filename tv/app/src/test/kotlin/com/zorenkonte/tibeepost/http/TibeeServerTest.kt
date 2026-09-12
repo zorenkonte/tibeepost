@@ -1,7 +1,8 @@
 package com.zorenkonte.tibeepost.http
 
-import com.zorenkonte.tibeepost.support.FakeServerInfo
+import com.zorenkonte.tibeepost.support.FakeSink
 import com.zorenkonte.tibeepost.support.TestClient
+import com.zorenkonte.tibeepost.support.testRouter
 import org.json.JSONObject
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -12,10 +13,11 @@ import org.junit.Test
 class TibeeServerTest {
     private lateinit var server: TibeeServer
     private lateinit var client: TestClient
+    private val sink = FakeSink()
 
     @Before
     fun startServer() {
-        server = TibeeServer(0, Router(FakeServerInfo()))
+        server = TibeeServer(0, testRouter(sink))
         server.start(5_000, true)
         client = TestClient(server.listeningPort)
     }
@@ -54,6 +56,27 @@ class TibeeServerTest {
     @Test
     fun wrongMethodIs405() {
         assertEquals(405, client.request("POST", "/health", "{}").status)
+    }
+
+    @Test
+    fun postNotifyRoundTrips() {
+        val response = client.request("POST", "/notify", """{"id":"n1","title":"Hi","message":"Body text"}""")
+        assertEquals(200, response.status)
+        assertEquals("n1", JSONObject(response.body).getString("id"))
+        assertEquals("Body text", sink.submitted.single().message)
+    }
+
+    @Test
+    fun postWithUtf8BodyKeepsCharacters() {
+        client.request("POST", "/notify", """{"message":"Héllo wörld ✓"}""")
+        assertEquals("Héllo wörld ✓", sink.submitted.single().message)
+    }
+
+    @Test
+    fun deleteNotifyRoundTrips() {
+        val response = client.request("DELETE", "/notify/n1")
+        assertEquals(200, response.status)
+        assertEquals(listOf("n1"), sink.dismissed)
     }
 
     @Test

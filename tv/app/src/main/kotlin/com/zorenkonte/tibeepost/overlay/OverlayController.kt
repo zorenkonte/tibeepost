@@ -8,6 +8,8 @@ import android.view.View
 import android.view.WindowManager
 import com.zorenkonte.tibeepost.image.ImageFetcher
 import com.zorenkonte.tibeepost.model.Notification
+import com.zorenkonte.tibeepost.queue.DismissResult
+import com.zorenkonte.tibeepost.queue.SubmitResult
 import com.zorenkonte.tibeepost.sound.SoundPlayer
 
 class OverlayController(
@@ -24,10 +26,20 @@ class OverlayController(
 
     fun canDrawOverlays(): Boolean = Settings.canDrawOverlays(context)
 
-    fun display(notification: Notification): Boolean {
+    fun submit(notification: Notification): SubmitResult {
+        if (!canDrawOverlays()) return SubmitResult.NO_OVERLAY_PERMISSION
         val shown = current
-        if (shown != null && shown.notification.id == notification.id) return replace(shown, notification)
-        return show(notification)
+        if (shown != null && shown.notification.id == notification.id) {
+            return if (replace(shown, notification)) SubmitResult.REPLACED else SubmitResult.FAILED
+        }
+        return if (show(notification)) SubmitResult.SHOWN else SubmitResult.FAILED
+    }
+
+    fun dismiss(id: String): DismissResult {
+        val shown = current ?: return DismissResult.UNKNOWN
+        if (shown.notification.id != id) return DismissResult.UNKNOWN
+        dismissCurrent()
+        return DismissResult.DISMISSED
     }
 
     fun dismissCurrent() {
