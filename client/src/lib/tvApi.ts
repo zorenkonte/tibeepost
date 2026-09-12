@@ -1,4 +1,5 @@
 import { baseUrl, type Device } from './devices'
+import { servedOverHttps } from './pageProtocol'
 import type { WirePayload } from './payload'
 
 export interface HealthInfo {
@@ -27,6 +28,9 @@ async function readError(response: Response): Promise<string> {
 
 function describeNetworkError(error: unknown): string {
   if (error instanceof DOMException && error.name === 'TimeoutError') return 'Timed out waiting for the TV'
+  if (error instanceof TypeError && servedOverHttps()) {
+    return 'Blocked: this page is HTTPS and the TV is HTTP. Allow insecure content for this site in your browser.'
+  }
   if (error instanceof TypeError) return 'Unreachable (network error or blocked by the browser)'
   return error instanceof Error ? error.message : String(error)
 }
