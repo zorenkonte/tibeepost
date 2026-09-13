@@ -124,6 +124,22 @@ class NotificationPayloadParserTest {
     }
 
     @Test
+    fun explicitEmptyAccentOverridesTheDefault() {
+        val withAccent = NotificationDefaults(accent = 0xFFFF1744.toInt())
+        assertEquals(0xFFFF1744.toInt(), success("""{"message":"m"}""", withAccent).accent)
+        assertNull(success("""{"message":"m","accent":""}""", withAccent).accent)
+        assertNull(success("""{"message":"m","accent":"none"}""", withAccent).accent)
+        assertNull(success("""{"message":"m","accent":null}""", withAccent).accent)
+        assertEquals(0xFF00C853.toInt(), success("""{"message":"m","accent":"#00C853"}""", withAccent).accent)
+    }
+
+    @Test
+    fun invalidAccentNamesTheField() {
+        assertTrue(failure("""{"message":"m","accent":"stripe"}""").startsWith("field 'accent' must be"))
+        assertTrue(failure("""{"message":"m","accent":12}""").startsWith("field 'accent' must be"))
+    }
+
+    @Test
     fun blankOptionalStringsCountAsAbsent() {
         val n = success("""{"message":"m","image":"","accent":"","title":""}""")
         assertNull(n.imageUrl)

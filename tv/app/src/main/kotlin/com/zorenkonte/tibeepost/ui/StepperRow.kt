@@ -28,7 +28,7 @@ fun StepperRow(
 ) {
     ListItem(
         selected = false,
-        onClick = onIncrease,
+        onClick = {},
         modifier = modifier.onKeyEvent { event ->
             if (event.type != KeyEventType.KeyDown) return@onKeyEvent false
             when (event.key) {
