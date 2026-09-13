@@ -45,9 +45,11 @@ TV side:
 Build side:
 
 - JDK 17 or newer (JDK 21 is fine).
-- Android SDK with platform 35 and build-tools 35. Android Studio installs these, or use the
-  command line tools and `sdkmanager "platforms;android-35" "build-tools;35.0.0"`.
-- Node.js 20 or newer for the web client.
+- Android SDK with platform 36 and build-tools 36. Android Studio installs these, or use the
+  command line tools and `sdkmanager "platforms;android-36" "build-tools;36.0.0"`.
+- Node.js 20 or newer. The APK build runs `npm run build` in `client/` and packs the result into
+  the app so the TV can serve the web client itself. Without `npm` on the PATH the APK still builds,
+  just without the bundled client.
 
 ## Install the TV app
 
@@ -330,6 +332,23 @@ with a packet capture.
 
 ## TV settings screen
 
+The app opens on a single home screen built for the remote. Everything is reachable with the
+D-pad: up and down move between rows, left and right change a value, OK presses a button.
+
+- **Header chips** show the server, overlay permission and token state at a glance.
+- **Connection** shows the address to send to, `IP:8090`, and a QR code. Scanning it with a phone
+  opens the web client served by the TV itself, already pointed at this TV.
+- **Setup** is a checklist: draw over other apps, notification server, network. A red row has a
+  **Fix** button that opens the permission guide.
+- **Settings tabs**: Card (test notification, default width, duration, dim, position), Colors
+  (background, text, accent swatches), Sound (default chime, preview), Security (token), Startup
+  (start on boot, run setup again).
+
+The permission guide lists where the "Display over other apps" switch lives on Android TV, tries the
+system permission page and falls back through the app info page and the main Settings app when the
+TV lacks it, and shows the adb command for TVs with no page at all. It re-checks every few seconds
+and reports success on its own.
+
 ### First run
 
 The first launch after installing opens a three-step setup instead of the settings screen:
@@ -345,21 +364,18 @@ The first launch after installing opens a three-step setup instead of the settin
 
 The setup runs once. A "Run setup again" row at the bottom of the settings screen brings it back.
 
-### Settings
+### Settings reference
 
-Open TibeePost from the launcher. Everything is reachable with the D-pad; there are no text
-fields.
-
-- **Address** `http://IP:8090`, in large type, plus server, auth and overlay permission
-  status. When the permission is missing the adb command appears here.
 - **Send test notification** performs a real `POST` to `127.0.0.1:8090`, exercising the full
   server, parser and overlay path.
-- **Auth token** Generate, view or clear. The token is 32 random bytes, base64url encoded.
-- **Start on boot** Toggle the boot receiver.
-- **Default sound** None or chime, with a Preview button.
-- **Default card width, duration, dim, position, background, text color, accent** Press left
-  and right on a row to step the value. These become the defaults for fields a `POST` omits.
-- **Run setup again** Replays the first-run flow.
+- **Default card width, duration, dim** are sliders; left and right move them in steps.
+- **Default position, sound** cycle with left and right.
+- **Background, text color, accent** cycle through swatches; "None" is a valid accent.
+- **Auth token** Generate, regenerate or clear. The token is 32 random bytes, base64url encoded.
+- **Start on boot** toggles the boot receiver.
+- **Run setup again** replays the first-run flow.
+
+These become the defaults for fields a `POST` omits.
 
 ## Web client
 
@@ -367,6 +383,12 @@ fields.
 and presets in `localStorage`, previews the card at the TV's proportions while you type, sends
 to one or many TVs with per-device results, keeps a session history of sends, and exports any
 notification as a curl command. See [client/README.md](client/README.md) for running it.
+
+**The easiest way to use it is from the TV itself.** The APK bundles the built client and the TV
+serves it at `http://TV_IP:8090/`, the same origin as the API, so there is no HTTPS block and no
+setup: open that address on any phone or laptop on the Wi-Fi, or scan the QR code on the TV's
+home screen. The client adds "This TV" as a device automatically when it is loaded that way.
+Static files are served without a token; the API behind them still requires one when set.
 
 ```sh
 cd client
@@ -376,8 +398,9 @@ npm run dev
 
 ## Hosted client
 
-`.github/workflows/pages.yml` deploys the client to GitHub Pages on every push to `main` that touches
-`client/`, at:
+For most people the copy served by the TV (see [Web client](#web-client)) is the one to use. A
+hosted copy also exists: `.github/workflows/pages.yml` deploys the client to GitHub Pages on every
+push to `main` that touches `client/`, at:
 
 ```
 https://zorenkonte.github.io/tibeepost/
@@ -454,6 +477,14 @@ Build a specific version locally the same way the release workflow does:
 ```sh
 cd tv
 ./gradlew assembleDebug -PtibeeVersionName=0.2.0 -PtibeeVersionCode=42
+```
+
+Render every screen of the TV app without a device. The previews live in
+`tv/app/src/screenshotTest` and the images land in `tv/app/src/screenshotTestDebug/reference/`:
+
+```sh
+cd tv
+./gradlew updateDebugScreenshotTest
 ```
 
 Regenerate the chime after editing `tv/tools/gen_chime.py`:

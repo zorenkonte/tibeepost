@@ -14,6 +14,7 @@ class Router(
     private val parser: NotificationPayloadParser,
     private val defaults: () -> NotificationDefaults,
     private val token: () -> String,
+    private val assets: StaticAssets = StaticAssets.Empty,
 ) {
 
     fun handle(request: HttpRequest): HttpResult = try {
@@ -26,6 +27,7 @@ class Router(
         val path = request.path.trimEnd('/').ifEmpty { "/" }
         if (request.method == "OPTIONS") return CorsHeaders.preflight()
         if (path == "/health") return requireMethod(request, "GET") { health() }
+        if (request.method == "GET" && !isApiPath(path)) return serveStatic(path)
         if (!BearerAuth.isAuthorized(request, token())) return BearerAuth.challenge()
         return when {
             path == "/info" -> requireMethod(request, "GET") { info() }
@@ -34,6 +36,8 @@ class Router(
             else -> JsonResponses.error(404, "no route for ${request.method} $path")
         }
     }
+
+    private fun isApiPath(path: String) = path == "/info" || path == "/notify" || path.startsWith("/notify/")
 
     private fun requireMethod(request: HttpRequest, method: String, handler: () -> HttpResult): HttpResult =
         if (request.method == method) handler() else JsonResponses.error(405, "${request.method} not allowed here")
@@ -72,6 +76,15 @@ class Router(
             SubmitResult.FAILED -> HttpResult(500, body.put("error", "could not draw the overlay").toString())
             else -> JsonResponses.ok(body)
         }
+    }
+
+    private fun serveStatic(path: String): HttpResult {
+        val relative = path.trimStart('/').ifEmpty { "index.html" }
+        if (relative.split('/').any { it == ".." }) return JsonResponses.error(404, "no route for GET $path")
+        val exact = assets.read(relative)
+        if (exact != null) return HttpResult.asset(exact)
+        val spaFallback = if (relative.contains('.')) null else assets.read("index.html")
+        return spaFallback?.let(HttpResult::asset) ?: JsonResponses.error(404, "no route for GET $path")
     }
 
     private fun clear(id: String): HttpResult {

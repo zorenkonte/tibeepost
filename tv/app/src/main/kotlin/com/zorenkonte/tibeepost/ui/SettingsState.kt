@@ -15,15 +15,23 @@ import com.zorenkonte.tibeepost.bridge.NetworkAddress
 import com.zorenkonte.tibeepost.http.ServerConfig
 import com.zorenkonte.tibeepost.settings.Settings
 import com.zorenkonte.tibeepost.settings.TokenGenerator
+import com.zorenkonte.tibeepost.sound.ChimePlayer
+import com.zorenkonte.tibeepost.ui.permission.OverlaySettingsLauncher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.net.HttpURLConnection
 import java.net.URL
 
-class SettingsState(context: Context) {
+class SettingsState(context: Context) : TibeeActions {
     private val appContext = context.applicationContext
     private val settings = Settings(appContext)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private var chime: ChimePlayer? = null
 
     var token by mutableStateOf(settings.token)
         private set
@@ -53,70 +61,105 @@ class SettingsState(context: Context) {
     var serverReachable by mutableStateOf<Boolean?>(null)
         private set
     var testResult by mutableStateOf("")
+    var lastOpenedSettings by mutableStateOf<OverlaySettingsLauncher.Target?>(null)
+        private set
 
     val port: Int = ServerConfig.PORT
     val packageName: String = appContext.packageName
 
-    val preferenceListener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ -> readPreferences() }
+    private val preferenceListener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ -> readPreferences() }
 
-    fun observePreferences() = settings.observe(preferenceListener)
+    fun start() = settings.observe(preferenceListener)
 
-    fun stopObservingPreferences() = settings.stopObserving(preferenceListener)
-
-    fun completeOnboarding() {
-        settings.onboardingDone = true
+    fun dispose() {
+        settings.stopObserving(preferenceListener)
+        scope.cancel()
+        chime?.release()
+        chime = null
     }
 
-    fun resetOnboarding() {
-        settings.onboardingDone = false
+    fun snapshot() = TibeeUiState(
+        ipAddress = ipAddress,
+        port = port,
+        packageName = packageName,
+        serverReachable = serverReachable,
+        overlayPermitted = overlayPermitted,
+        token = token,
+        autostart = autostart,
+        widthPercent = widthPercent,
+        durationSeconds = durationSeconds,
+        dim = dim,
+        background = background,
+        textColor = textColor,
+        accent = accent,
+        position = position,
+        sound = sound,
+        testResult = testResult,
+        lastOpenedSettings = lastOpenedSettings?.name,
+    )
+
+    override fun sendTest() {
+        scope.launch { testResult = TestNotificationSender.send(token) }
     }
 
-    fun generateToken() {
+    override fun previewChime() {
+        (chime ?: ChimePlayer(appContext).also { chime = it }).play()
+    }
+
+    override fun generateToken() {
         settings.token = TokenGenerator.generate()
     }
 
-    fun clearToken() {
+    override fun clearToken() {
         settings.token = ""
     }
 
-    fun updateAutostart(enabled: Boolean) {
+    override fun toggleAutostart(enabled: Boolean) {
         settings.autostart = enabled
     }
 
-    fun stepWidth(step: Int) {
-        settings.widthPercent = (widthPercent + step * 5).coerceIn(10, 100)
+    override fun changeWidth(percent: Int) {
+        settings.widthPercent = percent.coerceIn(10, 100)
     }
 
-    fun stepDuration(step: Int) {
-        val increment = if (durationSeconds > 10 || (durationSeconds == 10 && step > 0)) 5 else 1
-        settings.durationSeconds = (durationSeconds + step * increment).coerceIn(1, 120)
+    override fun changeDuration(seconds: Int) {
+        settings.durationSeconds = seconds.coerceIn(1, 120)
     }
 
-    fun stepDim(step: Int) {
-        val tenths = Math.round(dim * 10) + step
-        settings.dim = tenths.coerceIn(0, 10) / 10f
+    override fun changeDim(opacity: Float) {
+        settings.dim = opacity.coerceIn(0f, 1f)
     }
 
-    fun stepBackground(step: Int) {
-        settings.background = ColorPresets.next(ColorPresets.opaque, background, step).hex
+    override fun chooseBackground(hex: String) {
+        settings.background = hex
     }
 
-    fun stepTextColor(step: Int) {
-        settings.textColor = ColorPresets.next(ColorPresets.text, textColor, step).hex
+    override fun chooseTextColor(hex: String) {
+        settings.textColor = hex
     }
 
-    fun stepAccent(step: Int) {
-        settings.accent = ColorPresets.next(ColorPresets.accent, accent, step).hex
+    override fun chooseAccent(hex: String) {
+        settings.accent = hex
     }
 
-    fun stepPosition(step: Int) {
-        val options = com.zorenkonte.tibeepost.model.Position.entries
-        val index = options.indexOfFirst { it.wire == position }.coerceAtLeast(0)
-        settings.position = options[((index + step) % options.size + options.size) % options.size].wire
+    override fun choosePosition(wire: String) {
+        settings.position = wire
     }
 
-    fun toggleSound() {
-        settings.sound = if (sound == "none") "default" else "none"
+    override fun chooseSound(wire: String) {
+        settings.sound = wire
+    }
+
+    override fun openOverlaySettings() {
+        lastOpenedSettings = OverlaySettingsLauncher.open(appContext, packageName)
+    }
+
+    override fun completeOnboarding() {
+        settings.onboardingDone = true
+    }
+
+    override fun resetOnboarding() {
+        settings.onboardingDone = false
     }
 
     suspend fun pollEnvironment() {
@@ -158,8 +201,8 @@ fun rememberSettingsState(): SettingsState {
     val context = LocalContext.current
     val state = remember { SettingsState(context) }
     DisposableEffect(state) {
-        state.observePreferences()
-        onDispose { state.stopObservingPreferences() }
+        state.start()
+        onDispose { state.dispose() }
     }
     LaunchedEffect(state) { state.pollEnvironment() }
     return state

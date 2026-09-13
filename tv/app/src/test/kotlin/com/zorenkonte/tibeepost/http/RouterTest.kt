@@ -22,7 +22,7 @@ class RouterTest {
 
     @Test
     fun infoReportsNullIpWhenOffline() {
-        val body = JSONObject(get(testRouter(info = FakeServerInfo(ipAddress = null)), "/info").body)
+        val body = JSONObject(get(testRouter(info = FakeServerInfo(ipAddress = null)), "/info").text)
         assertEquals(JSONObject.NULL, body.get("ip"))
     }
 
@@ -33,7 +33,7 @@ class RouterTest {
         })
         val result = get(broken, "/info")
         assertEquals(500, result.status)
-        assertEquals("boom", JSONObject(result.body).getString("error"))
+        assertEquals("boom", JSONObject(result.text).getString("error"))
     }
 
     @Test
@@ -42,7 +42,7 @@ class RouterTest {
         val result = post(testRouter(sink), "/notify", """{"id":"a","message":"hello"}""")
         assertEquals(200, result.status)
         assertEquals("a", sink.submitted.single().id)
-        val body = JSONObject(result.body)
+        val body = JSONObject(result.text)
         assertEquals("a", body.getString("id"))
         assertEquals("shown", body.getString("result"))
     }
@@ -50,9 +50,9 @@ class RouterTest {
     @Test
     fun replacedAndQueuedAreReported() {
         val sink = FakeSink(submitResult = SubmitResult.REPLACED)
-        assertEquals("replaced", JSONObject(post(testRouter(sink), "/notify", """{"message":"m"}""").body).getString("result"))
+        assertEquals("replaced", JSONObject(post(testRouter(sink), "/notify", """{"message":"m"}""").text).getString("result"))
         sink.submitResult = SubmitResult.QUEUED
-        assertEquals("queued", JSONObject(post(testRouter(sink), "/notify", """{"message":"m"}""").body).getString("result"))
+        assertEquals("queued", JSONObject(post(testRouter(sink), "/notify", """{"message":"m"}""").text).getString("result"))
     }
 
     @Test
@@ -60,7 +60,7 @@ class RouterTest {
         val sink = FakeSink()
         val result = post(testRouter(sink), "/notify", """{"message":"m","duration":"soon"}""")
         assertEquals(400, result.status)
-        assertTrue(JSONObject(result.body).getString("error").contains("'duration'"))
+        assertTrue(JSONObject(result.text).getString("error").contains("'duration'"))
         assertTrue(sink.submitted.isEmpty())
     }
 
@@ -69,7 +69,7 @@ class RouterTest {
         val sink = FakeSink(submitResult = SubmitResult.NO_OVERLAY_PERMISSION)
         val result = post(testRouter(sink), "/notify", """{"message":"m"}""")
         assertEquals(503, result.status)
-        assertTrue(JSONObject(result.body).getString("error").contains("appops set com.zorenkonte.tibeepost"))
+        assertTrue(JSONObject(result.text).getString("error").contains("appops set com.zorenkonte.tibeepost"))
     }
 
     @Test
@@ -78,7 +78,7 @@ class RouterTest {
         val result = delete(testRouter(sink), "/notify/order-1")
         assertEquals(200, result.status)
         assertEquals(listOf("order-1"), sink.dismissed)
-        assertEquals("dismissed", JSONObject(result.body).getString("result"))
+        assertEquals("dismissed", JSONObject(result.text).getString("result"))
     }
 
     @Test

@@ -2,6 +2,7 @@ package com.zorenkonte.tibeepost.support
 
 import com.zorenkonte.tibeepost.http.Router
 import com.zorenkonte.tibeepost.http.ServerInfo
+import com.zorenkonte.tibeepost.http.StaticAssets
 import com.zorenkonte.tibeepost.model.NotificationDefaults
 import com.zorenkonte.tibeepost.model.NotificationPayloadParser
 
@@ -10,4 +11,5 @@ fun testRouter(
     info: ServerInfo = FakeServerInfo(),
     defaults: NotificationDefaults = NotificationDefaults(),
     token: String = "",
-) = Router(info, sink, NotificationPayloadParser { "generated-id" }, { defaults }, { token })
+    assets: StaticAssets = StaticAssets.Empty,
+) = Router(info, sink, NotificationPayloadParser { "generated-id" }, { defaults }, { token }, assets)

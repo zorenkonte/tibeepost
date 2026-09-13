@@ -1,15 +1,28 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { normalizeHost, type Device, type DeviceStatus } from '../lib/devices'
+import { normalizeHost, servingTvHost, type Device, type DeviceStatus } from '../lib/devices'
 import { readStored, writeStored } from '../lib/storage'
 import { checkHealth } from '../lib/tvApi'
 
 const DEVICES_KEY = 'tibeepost.devices'
 const SELECTED_KEY = 'tibeepost.selectedDevices'
 const POLL_MS = 5000
+const SERVING_TV_ID = 'this-tv'
+
+function withServingTv(stored: Device[]): Device[] {
+  const serving = servingTvHost()
+  if (!serving || stored.some((d) => d.host === serving)) return stored
+  return [{ id: SERVING_TV_ID, name: 'This TV', host: serving, token: '' }, ...stored]
+}
 
 export function useDevices() {
-  const [devices, setDevices] = useState<Device[]>(() => readStored<Device[]>(DEVICES_KEY, []))
-  const [selectedIds, setSelectedIds] = useState<string[]>(() => readStored<string[]>(SELECTED_KEY, []))
+  const [devices, setDevices] = useState<Device[]>(() => withServingTv(readStored<Device[]>(DEVICES_KEY, [])))
+  const [selectedIds, setSelectedIds] = useState<string[]>(() => {
+    const stored = readStored<string[]>(SELECTED_KEY, [])
+    const serving = servingTvHost()
+    if (!serving) return stored
+    const id = readStored<Device[]>(DEVICES_KEY, []).find((d) => d.host === serving)?.id ?? SERVING_TV_ID
+    return stored.includes(id) ? stored : [...stored, id]
+  })
   const [statuses, setStatuses] = useState<Record<string, DeviceStatus>>({})
 
   useEffect(() => writeStored(DEVICES_KEY, devices), [devices])

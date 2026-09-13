@@ -26,3 +26,4 @@ dist/
 dist-ssr/
 *.local
 npm-debug.log*
+tv/app/src/screenshotTestDebug/reference/

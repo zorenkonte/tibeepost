@@ -22,6 +22,12 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
       - name: Test, build and lint
         working-directory: tv
         run: ./gradlew testDebugUnitTest assembleDebug lintDebug --no-daemon

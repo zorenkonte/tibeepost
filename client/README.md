@@ -3,6 +3,12 @@
 A React 19 app for composing and sending TibeePost notifications. It calls the TV's HTTP API
 straight from the browser; there is no backend.
 
+## Served by the TV
+
+The TibeePost APK bundles this client and serves it at `http://TV_IP:8090/`. Open that address, or
+scan the QR code on the TV's home screen, and the client comes up with "This TV" already added as a
+device. Nothing below is needed for that; it is for developing the client or hosting it elsewhere.
+
 ## Run it
 
 ```sh
@@ -24,7 +30,8 @@ npm run preview
 or a Raspberry Pi. Serve it over `http://` to reach the TV without extra browser settings.
 
 Set `VITE_BASE` when the app lives under a sub-path, for example `VITE_BASE=/tibeepost/ npm run build`
-for GitHub Pages. It defaults to `/`.
+for GitHub Pages. It defaults to `/`, which is also what the TV build uses: `tv/app/build.gradle.kts`
+runs `npm run build` and copies `dist/` into the APK assets.
 
 ## Hosted on GitHub Pages
 
