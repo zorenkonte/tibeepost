@@ -37,7 +37,7 @@ class NotificationPayloadParser(
             widthPercent = int(json, "widthPercent", 10, 100) ?: defaults.widthPercent,
             background = color(json, "background") ?: defaults.background,
             textColor = color(json, "textColor") ?: defaults.textColor,
-            accent = color(json, "accent") ?: defaults.accent,
+            accent = accent(json, defaults.accent),
             dim = fraction(json, "dim") ?: defaults.dim,
             sound = sound(json) ?: defaults.sound,
             speak = boolean(json, "speak") ?: false,
@@ -90,6 +90,17 @@ class NotificationPayloadParser(
     private fun color(json: JSONObject, key: String): Int? {
         val value = string(json, key)?.trim()?.takeIf { it.isNotEmpty() } ?: return null
         return HexColor.parse(value) ?: throw FieldError("field '$key' must be a hex color like #RRGGBB")
+    }
+
+    private fun accent(json: JSONObject, default: Int?): Int? {
+        if (!json.has("accent")) return default
+        if (json.isNull("accent")) return null
+        val value = json.get("accent") as? String
+            ?: throw FieldError("field 'accent' must be a hex color like #RRGGBB, \"none\" or null")
+        val trimmed = value.trim()
+        if (trimmed.isEmpty() || trimmed.equals("none", ignoreCase = true)) return null
+        return HexColor.parse(trimmed)
+            ?: throw FieldError("field 'accent' must be a hex color like #RRGGBB, \"none\" or null")
     }
 
     private fun position(json: JSONObject): Position? {

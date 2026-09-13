@@ -212,7 +212,7 @@ Request body is a JSON object. Only `message` is required.
 | `widthPercent` | number | 60 (TV setting) | Card width as a percentage of screen width, 10 to 100. Height follows the content. |
 | `background` | string (hex) | `#FFFFFF` (TV setting) | Card background. |
 | `textColor` | string (hex) | `#111111` (TV setting) | Title and message color. |
-| `accent` | string (hex) | none (TV setting) | Color of a vertical stripe on the card's left edge. Omit for no stripe. |
+| `accent` | string (hex) | none (TV setting) | Color of a vertical stripe on the card's left edge. Omit the field to use the TV's default; send `"none"`, `""` or `null` to force no stripe even when the TV has a default. |
 | `dim` | number | 0 (TV setting) | Opacity, 0 to 1, of a full-screen black layer behind the card. `0.9` hides what is playing almost completely. |
 | `sound` | string | `default` (TV setting) | `none`, `default` for the bundled chime, or an `http(s)` URL of an audio file to stream. |
 | `speak` | boolean | `false` | Read the title and message aloud with the TV's text-to-speech engine after the sound finishes. |
