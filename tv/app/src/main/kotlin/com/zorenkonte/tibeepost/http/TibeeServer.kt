@@ -1,6 +1,7 @@
 package com.zorenkonte.tibeepost.http
 
 import fi.iki.elonen.NanoHTTPD
+import java.io.ByteArrayInputStream
 import java.io.InputStream
 
 class TibeeServer(port: Int, private val router: Router) : NanoHTTPD(port) {
@@ -22,11 +23,12 @@ class TibeeServer(port: Int, private val router: Router) : NanoHTTPD(port) {
 
     private fun toResponse(result: HttpResult): Response {
         val status = Response.Status.lookup(result.status) ?: Response.Status.INTERNAL_ERROR
-        val response = if (result.body.isEmpty()) {
-            newFixedLengthResponse(status, MIME_JSON, "")
-        } else {
-            newFixedLengthResponse(status, MIME_JSON, result.body)
-        }
+        val response = newFixedLengthResponse(
+            status,
+            result.contentType,
+            ByteArrayInputStream(result.body),
+            result.body.size.toLong(),
+        )
         CorsHeaders.all.forEach { (name, value) -> response.addHeader(name, value) }
         result.headers.forEach { (name, value) -> response.addHeader(name, value) }
         return response
@@ -45,7 +47,4 @@ class TibeeServer(port: Int, private val router: Router) : NanoHTTPD(port) {
         return String(bytes, 0, offset, Charsets.UTF_8)
     }
 
-    private companion object {
-        const val MIME_JSON = "application/json"
-    }
 }

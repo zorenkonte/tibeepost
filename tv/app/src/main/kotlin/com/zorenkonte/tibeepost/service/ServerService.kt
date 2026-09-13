@@ -9,6 +9,7 @@ import android.os.Handler
 import android.os.Looper
 import com.zorenkonte.tibeepost.R
 import com.zorenkonte.tibeepost.bridge.AndroidServerInfo
+import com.zorenkonte.tibeepost.bridge.AssetStaticAssets
 import com.zorenkonte.tibeepost.bridge.MainThreadSink
 import com.zorenkonte.tibeepost.bridge.NetworkAddress
 import com.zorenkonte.tibeepost.http.Router
@@ -43,6 +44,7 @@ class ServerService : Service() {
             parser = NotificationPayloadParser(),
             defaults = settings::toDefaults,
             token = settings::token,
+            assets = AssetStaticAssets(assets, "web"),
         )
         server = TibeeServer(ServerConfig.PORT, router)
     }
