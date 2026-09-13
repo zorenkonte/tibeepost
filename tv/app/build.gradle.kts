@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.compose.screenshot)
 }
 
 android {
@@ -47,6 +48,8 @@ android {
     testOptions {
         unitTests.isReturnDefaultValues = true
     }
+
+    experimentalProperties["android.experimental.enableScreenshotTest"] = true
 }
 
 val webClientDir = rootProject.layout.projectDirectory.dir("../client")
@@ -101,6 +104,9 @@ dependencies {
     implementation(libs.compose.foundation)
     implementation(libs.compose.material3)
     implementation(libs.compose.material.icons)
+    implementation(libs.compose.ui.tooling.preview)
+    screenshotTestImplementation(libs.compose.ui.tooling)
+    screenshotTestImplementation(libs.screenshot.validation.api)
     implementation(libs.coroutines.android)
     implementation(libs.nanohttpd)
     implementation(libs.zxing.core)
