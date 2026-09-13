@@ -28,3 +28,11 @@ export function baseUrl(device: Pick<Device, 'host'>): string {
 export function newDeviceId(): string {
   return crypto.randomUUID()
 }
+
+export function servingTvHost(): string | null {
+  if (typeof window === 'undefined') return null
+  const { hostname, port, protocol } = window.location
+  if (protocol !== 'http:' || port !== String(DEFAULT_PORT)) return null
+  if (hostname === 'localhost' || hostname === '127.0.0.1') return null
+  return `${hostname}:${port}`
+}
