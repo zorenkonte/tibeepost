@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "com.zorenkonte.tibeepost"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.zorenkonte.tibeepost"
@@ -61,9 +61,12 @@ dependencies {
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)
     implementation(libs.compose.foundation)
+    implementation(libs.compose.material3)
+    implementation(libs.compose.material.icons)
     implementation(libs.tv.material)
     implementation(libs.coroutines.android)
     implementation(libs.nanohttpd)
+    implementation(libs.zxing.core)
 
     testImplementation(libs.junit)
     testImplementation(libs.org.json)
