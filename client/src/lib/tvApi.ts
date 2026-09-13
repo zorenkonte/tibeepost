@@ -29,9 +29,9 @@ async function readError(response: Response): Promise<string> {
 function describeNetworkError(error: unknown): string {
   if (error instanceof DOMException && error.name === 'TimeoutError') return 'Timed out waiting for the TV'
   if (error instanceof TypeError && servedOverHttps()) {
-    return 'Blocked: this page is HTTPS and the TV is HTTP. Allow insecure content for this site in your browser.'
+    return 'Blocked by the browser (this page is HTTPS, the TV is HTTP) or nothing answered on that port. Check the port is 8090, then allow insecure content for this site.'
   }
-  if (error instanceof TypeError) return 'Unreachable (network error or blocked by the browser)'
+  if (error instanceof TypeError) return 'Unreachable: check the IP and that the port is 8090, not 5555'
   return error instanceof Error ? error.message : String(error)
 }
 

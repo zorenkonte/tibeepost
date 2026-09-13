@@ -48,6 +48,7 @@ are in the root README under "Hosted client".
 3. **Send.** Posts to every selected device in parallel and lists success or the actual error
    per device. **Clear card by ID** sends `DELETE /notify/{id}` for the ID in the composer,
    which is how you remove a persistent card.
+   Turning the accent switch off sends `"accent": "none"`, which overrides any default accent set on the TV.
 4. **History tab.** Every send in this browser session, with per-device results. Re-send it
    as-is, or load it back into the composer.
 5. **curl tab.** The composed notification as a working `curl` command against the chosen

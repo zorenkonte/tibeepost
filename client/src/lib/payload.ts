@@ -64,7 +64,7 @@ export function toWire(payload: NotificationPayload): WirePayload {
   wire.widthPercent = payload.widthPercent
   wire.background = payload.background
   wire.textColor = payload.textColor
-  text('accent')
+  wire.accent = payload.accent.trim() || 'none'
   wire.dim = Number(payload.dim.toFixed(2))
   wire.sound = payload.sound.trim() || 'none'
   wire.speak = payload.speak
