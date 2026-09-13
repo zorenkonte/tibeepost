@@ -94,8 +94,12 @@ git push origin v0.2.0
 
 The workflow runs the JVM tests, builds the APK with `versionName` taken from the tag (`v0.2.0`
 becomes `0.2.0`) and `versionCode` set to the workflow run number, which only ever goes up, so
-every release installs over the previous one. Running the workflow by hand from the Actions tab
-produces a pre-release named `manual-<run>` for trying a branch.
+every release installs over the previous one.
+
+Without a local git checkout, publish from the Actions tab instead: open **Release APK**, choose
+**Run workflow**, and enter a plain version such as `0.2.0`. The run creates the `v0.2.0` tag on the
+current `main` and publishes the full release. Any other input, or the default, produces a
+pre-release named `manual-<run>` for trying a build.
 
 APKs are signed with `tv/debug.keystore`, a debug key committed to the repo on purpose. Android only
 allows `adb install -r` to upgrade an app when the new APK is signed with the same key as the
