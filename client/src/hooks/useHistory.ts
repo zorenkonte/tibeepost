@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
 import type { DeviceOutcome } from './useSender'
+import { newId } from '../lib/ids'
 import type { NotificationPayload } from '../lib/payload'
 
 export interface HistoryEntry {
@@ -16,7 +17,7 @@ export function useHistory() {
 
   const record = useCallback((payload: NotificationPayload, outcomes: DeviceOutcome[]) => {
     setEntries((current) =>
-      [{ id: crypto.randomUUID(), sentAt: Date.now(), payload, outcomes }, ...current].slice(0, MAX_ENTRIES),
+      [{ id: newId(), sentAt: Date.now(), payload, outcomes }, ...current].slice(0, MAX_ENTRIES),
     )
   }, [])
 

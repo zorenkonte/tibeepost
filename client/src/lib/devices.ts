@@ -1,3 +1,5 @@
+import { newId } from './ids'
+
 export interface Device {
   id: string
   name: string
@@ -26,7 +28,7 @@ export function baseUrl(device: Pick<Device, 'host'>): string {
 }
 
 export function newDeviceId(): string {
-  return crypto.randomUUID()
+  return newId()
 }
 
 export function servingTvHost(): string | null {

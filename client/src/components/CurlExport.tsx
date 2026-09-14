@@ -1,6 +1,7 @@
 import { Button, Select, SurfaceCut, useToast } from '@cladd-ui/react'
 import { useState } from 'react'
 import type { DevicesStore } from '../hooks/useDevices'
+import { copyText } from '../lib/clipboard'
 import { curlForClear, curlForNotify } from '../lib/curl'
 import { toWire, type NotificationPayload } from '../lib/payload'
 
@@ -21,10 +22,9 @@ export function CurlExport({ payload, devices }: CurlExportProps) {
   const clearCommand = payload.id.trim() ? curlForClear(payload.id.trim(), device) : null
 
   const copy = async (text: string, what: string) => {
-    try {
-      await navigator.clipboard.writeText(text)
+    if (await copyText(text)) {
       toast({ title: `${what} copied`, color: 'green', timeout: 2500 })
-    } catch {
+    } else {
       toast({ title: 'Clipboard blocked', text: 'Select the text and copy it manually.', color: 'red' })
     }
   }
