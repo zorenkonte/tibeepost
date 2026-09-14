@@ -33,18 +33,19 @@ npm run preview
 `dist/` is static and can be hosted from anything on the LAN, including the TV owner's NAS
 or a Raspberry Pi. Serve it over `http://` to reach the TV without extra browser settings.
 
-Set `VITE_BASE` when the app lives under a sub-path, for example `VITE_BASE=/tibeepost/ npm run build`
+Set `VITE_BASE` when the app lives under a sub-path, for example `VITE_BASE=/tibeepost/app/ npm run build`
 for GitHub Pages. It defaults to `/`, which is also what the TV build uses: `tv/app/build.gradle.kts`
 runs `npm run build` and copies `dist/` into the APK assets.
 
 ## Hosted on GitHub Pages
 
-Every push to `main` that touches `client/` deploys the app to
-`https://zorenkonte.github.io/tibeepost/` through `.github/workflows/pages.yml`. Pages is HTTPS-only,
+Every push to `main` that touches `client/` or `docs/` deploys the app to
+`https://zorenkonte.github.io/tibeepost/app/` through `.github/workflows/pages.yml`, next to the
+documentation site at `https://zorenkonte.github.io/tibeepost/`. Pages is HTTPS-only,
 and browsers block an HTTPS page from calling the TV's plain-HTTP server, so the hosted app shows a
 banner when it detects HTTPS. In Chrome and Edge, click the padlock, open Site settings, set Insecure
 content to Allow, and reload; Firefox has no per-site override, so use `npm run dev` there. Details
-are in the root README under "Hosted client".
+are on the [web client page](https://zorenkonte.github.io/tibeepost/guide/web-client) of the docs.
 
 ## Using it
 
