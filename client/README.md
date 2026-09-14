@@ -9,6 +9,10 @@ The TibeePost APK bundles this client and serves it at `http://TV_IP:8090/`. Ope
 scan the QR code on the TV's home screen, and the client comes up with "This TV" already added as a
 device. Nothing below is needed for that; it is for developing the client or hosting it elsewhere.
 
+That page runs on a plain-HTTP origin, which browsers treat as an insecure context: `crypto.randomUUID`
+and `navigator.clipboard` are unavailable there. The client generates ids from `crypto.getRandomValues`
+and copies through a hidden textarea when needed, so every feature works on the TV-served copy.
+
 ## Run it
 
 ```sh
