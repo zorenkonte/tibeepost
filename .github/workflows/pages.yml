@@ -1,4 +1,4 @@
-name: Deploy client to GitHub Pages
+name: Deploy site to GitHub Pages
 
 on:
   push:
@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'client/**'
+      - 'docs/**'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
@@ -28,27 +29,40 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-          cache-dependency-path: client/package-lock.json
+          cache-dependency-path: |
+            client/package-lock.json
+            docs/package-lock.json
 
-      - name: Install
+      - name: Install client
         working-directory: client
         run: npm ci
 
-      - name: Lint
+      - name: Lint client
         working-directory: client
         run: npm run lint
 
-      - name: Build
+      - name: Build client
         working-directory: client
         env:
-          VITE_BASE: /${{ github.event.repository.name }}/
+          VITE_BASE: /${{ github.event.repository.name }}/app/
         run: npm run build
+
+      - name: Install docs
+        working-directory: docs
+        run: npm ci
+
+      - name: Build docs
+        working-directory: docs
+        run: npm run build
+
+      - name: Place the client under /app/
+        run: cp -r client/dist docs/.vitepress/dist/app
 
       - uses: actions/configure-pages@v5
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: client/dist
+          path: docs/.vitepress/dist
 
   deploy:
     needs: build
